@@ -18,7 +18,7 @@ import { ReadingHistoryItem } from "./types";
 
 export default function App() {
   // [1] AUTHENTICATION & CLOUD SYNC
-  const { user, authLoading, isSyncing, login, logout } = useAuth();
+  const { user, authLoading, isSyncing, syncMessage, login, logout } = useAuth();
 
   // [2] READING JOURNAL MANAGEMENT
   const {
@@ -105,6 +105,7 @@ export default function App() {
         user={user}
         authLoading={authLoading}
         isSyncing={isSyncing}
+        syncMessage={syncMessage}
         historyCount={history.length}
         showHistoryPanel={showHistoryPanel}
         onReset={handleReset}

@@ -7,6 +7,7 @@ interface NavbarProps {
   user: User | null;
   authLoading: boolean;
   isSyncing: boolean;
+  syncMessage?: string | null;
   historyCount: number;
   showHistoryPanel: boolean;
   onReset: () => void;
@@ -19,6 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   user,
   authLoading,
   isSyncing,
+  syncMessage,
   historyCount,
   showHistoryPanel,
   onReset,
@@ -67,12 +69,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onLogin}
-              className="py-1 xs:py-1.5 px-2 xs:px-3 rounded-full text-[10px] xs:text-[10.5px] font-serif bg-[#FAF6F0] text-[#2E251E] border border-[#EADCC9] hover:bg-[#F3EDE3] transition-colors flex items-center space-x-1 xs:space-x-1.5 cursor-pointer shadow-2xs group"
+              disabled={isSyncing}
+              className={`py-1 xs:py-1.5 px-2 xs:px-3 rounded-full text-[10px] xs:text-[10.5px] font-serif bg-[#FAF6F0] text-[#2E251E] border border-[#EADCC9] hover:bg-[#F3EDE3] transition-colors flex items-center space-x-1 xs:space-x-1.5 shadow-2xs group ${
+                isSyncing ? "opacity-75 cursor-wait" : "cursor-pointer"
+              }`}
               id="auth-login-btn"
               title="Hubungkan akun"
             >
-              <CircleUser className="w-3.5 h-3.5 text-[#B98B68] transition-transform duration-300 group-hover:scale-110" />
-              <span>Masuk</span>
+              {isSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 text-[#C27E5A] animate-spin shrink-0" />
+              ) : (
+                <CircleUser className="w-3.5 h-3.5 text-[#B98B68] transition-transform duration-300 group-hover:scale-110" />
+              )}
+              <span>{isSyncing ? "Menghubungkan..." : syncMessage || "Masuk"}</span>
             </button>
           )}
 

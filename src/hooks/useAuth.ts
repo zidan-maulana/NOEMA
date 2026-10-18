@@ -23,12 +23,27 @@ export function useAuth() {
     try {
       const loggedUser = await loginWithGoogle();
       setUser(loggedUser);
+      setSyncMessage(null);
       return loggedUser;
-    } catch (err) {
-      console.error("Login gagal:", err);
-      setSyncMessage("Gagal menghubungkan");
-      setTimeout(() => setSyncMessage(null), 3000);
-      throw err;
+    } catch (err: any) {
+      console.error("[Noema Auth Error]:", err);
+      let errorMsg = "Gagal menghubungkan";
+
+      if (err?.code === "auth/unauthorized-domain") {
+        errorMsg = "Domain belum diotorisasi";
+        const currentDomain = typeof window !== "undefined" ? window.location.hostname : "domain Anda";
+        alert(
+          `Domain ini (${currentDomain}) belum ditambahkan ke daftar 'Authorized Domains' di Firebase Authentication.\n\nLangkah perbaikan:\n1. Buka Firebase Console (https://console.firebase.google.com/)\n2. Pilih proyek Firebase Noema\n3. Buka menu Authentication > Settings > Authorized domains\n4. Klik 'Add domain' dan masukkan: ${currentDomain}`
+        );
+      } else if (err?.code === "auth/popup-blocked") {
+        errorMsg = "Pop-up diblokir browser";
+        alert("Jendela pop-up login Google diblokir oleh browser. Silakan izinkan pop-up untuk situs ini di pengaturan browser lalu coba lagi.");
+      } else if (err?.code === "auth/popup-closed-by-user") {
+        errorMsg = null;
+      }
+
+      setSyncMessage(errorMsg);
+      setTimeout(() => setSyncMessage(null), 4000);
     } finally {
       setIsSyncing(false);
     }
