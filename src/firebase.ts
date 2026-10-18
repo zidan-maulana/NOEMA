@@ -19,8 +19,21 @@ import {
 } from "firebase/firestore";
 import firebaseConfig from "../firebase-applet-config.json";
 
+// Tentukan authDomain: gunakan domain web saat di production (Vercel) dan fallback firebaseapp di localhost
+const isLocalhost = typeof window !== "undefined" && (
+  window.location.hostname === "localhost" || 
+  window.location.hostname === "127.0.0.1"
+);
+
+const effectiveAuthDomain = !isLocalhost && typeof window !== "undefined" && window.location.hostname
+  ? window.location.hostname
+  : firebaseConfig.authDomain;
+
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  ...firebaseConfig,
+  authDomain: effectiveAuthDomain
+});
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
 export const auth = getAuth(app);
 export { getRedirectResult };
