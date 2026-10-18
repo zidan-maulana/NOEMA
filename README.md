@@ -1,87 +1,125 @@
-# Noema (νοήμα) — Penyelisik Makna & Teman Membaca
+# Noema
 
-> *“Teman berpikir untuk buku yang selama ini kamu tutup di halaman sepuluh.”*
-
-**Noema** adalah asisten membaca mendalam (*guided deep reading companion*) berbasis AI yang dirancang untuk membantu pembaca menelusuri, membedah, dan merenungkan paragraf-paragraf sulit dari literatur filsafat, teori sosial, sastra, dan psikologi.
+Noema adalah aplikasi web pendamping membaca berbasis kecerdasan buatan yang dirancang untuk menganalisis, menguraikan struktur gagasan, dan menyajikan penjelasan terstruktur dari teks atau literatur konseptual yang padat.
 
 ---
 
-## 🏛️ Arsitektur & Teknologi
+## Ringkasan Proyek
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS (Vanilla design system dengan palet warna hangat Lora & Space Grotesk).
-- **Backend / Serverless:** Vercel Serverless Functions (`api/analyze.ts`) dengan Express adapter untuk development lokal.
-- **AI Engine:** Google Gemini 3.8 Flash dengan skema JSON terstruktur, sandboxing anti-injeksi, dan evaluasi densitas semantik hermeneutis.
-- **Autentikasi & Penyimpanan:** Firebase Auth (Google Sign-In) & Firestore Cloud Sync dengan dukungan offline/guest mode tanpa kehilangan riwayat.
-- **Ketahanan Sistem:** Global React Error Boundary, AbortController timeout 28 detik, Safe LocalStorage wrapper, dan rate limiting cooldown 8 detik.
+Aplikasi ini menggunakan model Google Gemini melalui arsitektur serverless untuk membedah teks kompleks menjadi penjelasan yang mudah dipahami. Hasil analisis disajikan melalui pendekatan bertahap (*progressive disclosure*) yang mencakup inti pemikiran, penjelasan dalam bahasa sederhana, konteks relevansi, pertanyaan reflektif, glosarium istilah kunci, serta catatan pembacaan hermeneutis.
 
 ---
 
-## 📚 Fitur Utama
+## Fitur Utama
 
-1. **4 Lapisan Pembacaan (*Progressive Layered Reading*):**
-   - **Lapisan I (Inti Pemikiran):** Meringkas jantung pemikiran dalam 1–2 kalimat yang jernih.
-   - **Lapisan II (Terjemahan Gagasan):** Membumikan konsep rumit ke bahasa manusiawi yang dekat dan hangat.
-   - **Lapisan III (Mengapa Ini Penting):** Mengungkap signifikansi eksistensial dan dampaknya bagi sudut pandang kehidupan.
-   - **Lapisan IV (Refleksi Lanjutan):** Pertanyaan filosofis tajam pemantik hening.
-2. **Modul Hermeneutis Mendalam:**
-   - **Untaian Gagasan:** Pemaparan kosakata kunci dan definisi intuitifnya.
-   - **Pembacaan Kedua:** 3 pertanyaan reflektif untuk membongkar asumsi lama.
-   - **Jejak Pemikiran:** Resonansi gagasan dengan pemikir-pemikir besar dunia.
-3. **Catatan Membaca (*Reading Journal Drawer*):**
-   - Penamaan kustom catatan (*inline rename*).
-   - Penyematan catatan prioritas (*pin*).
-   - Ekspor catatan bersih dalam format **Markdown (.md)** siap baca.
-   - Sinkronisasi otomatis dari tamu lokal ke akun Google pengguna saat login.
+- **Analisis Berlapis (Progressive Disclosure):** Menyajikan hasil pembacaan dalam empat tahapan bertingkat untuk mempermudah pemahaman kognitif pengguna.
+- **Ekstraksi Istilah Kunci:** Mengidentifikasi konsep atau kosakata penting dalam teks beserta definisi kontekstualnya.
+- **Deteksi Domain dan Nada Analisis:** Mengkategorikan teks ke dalam domain pembacaan (filosofis, psikologis, sastra, sosial, analitis) dan menyesuaikan gaya penyampaian secara dinamis.
+- **Jurnal Pembacaan (Reading Journal):** Menyimpan riwayat analisis lokal di peramban dan menyinkronkannya ke Firestore saat pengguna masuk dengan akun Google.
+- **Ekspor Dokumen Markdown:** Memungkinkan pengguna mengunduh catatan analisis ke dalam berkas Markdown (.md) yang terformat rapi dan aman.
+- **Keamanan dan Penanganan Eror:** Dilengkapi pembatas frekuensi permintaan (rate limiting), pencegahan injeksi prompt (prompt injection guard), pelindung kesalahan aplikasi global (React Error Boundary), serta penanganan status luring (offline).
 
 ---
 
-## 🚀 Menjalankan Secara Lokal
+## Tumpukan Teknologi (Tech Stack)
 
-### Prasyarat
-- **Node.js** (v18 atau lebih baru)
-- Kunci API dari [Google AI Studio](https://aistudio.google.com/)
+### Antarmuka (Frontend)
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Lucide React
 
-### Langkah Instalasi
+### Backend & Layanan Cloud
+- Vercel Serverless Functions (`api/analyze.ts`)
+- Express (adapter lingkungan pengembangan lokal)
+- Google Gen AI SDK (`@google/genai` dengan model Gemini 3.8 Flash)
+- Firebase Authentication (Google OAuth Provider)
+- Cloud Firestore (penyimpanan dokumen jurnal pembacaan)
 
-1. **Kloning repositori:**
+---
+
+## Prasyarat Sistem
+
+Sebelum menjalankan proyek, pastikan lingkungan pengembangan Anda telah terpasang:
+- Node.js versi 18 atau yang lebih baru
+- npm versi 9 atau yang lebih baru
+- Kunci API Google Gemini (dapat diperoleh melalui Google AI Studio)
+
+---
+
+## Instalasi dan Konfigurasi
+
+1. Kloning repositori:
    ```bash
-   git clone <url-repository-anda>
+   git clone <URL_REPOSITORI_ANDA>
    cd noema
    ```
 
-2. **Pasang dependensi:**
+2. Pasang dependensi proyek:
    ```bash
    npm install
    ```
 
-3. **Konfigurasi Variabel Lingkungan:**
-   Salin `.env.example` menjadi `.env.local`:
+3. Siapkan variabel lingkungan:
+   Salin berkas contoh `.env.example` menjadi `.env.local`:
    ```bash
    cp .env.example .env.local
    ```
-   Buka file `.env.local` dan masukkan API Key Anda:
+
+4. Konfigurasikan variabel pada `.env.local`:
    ```env
-   GEMINI_API_KEY="AIzaSy..."
+   GEMINI_API_KEY="masukkan_kunci_api_gemini_anda"
    APP_URL="http://localhost:3000"
    ```
 
-4. **Jalankan server pengembangan:**
-   ```bash
-   npm run dev
-   ```
-   Aplikasi dapat diakses di browser melalui **`http://localhost:3000`**.
+---
+
+## Menjalankan Proyek Secara Lokal
+
+Jalankan perintah berikut untuk memulai server pengembangan:
+
+```bash
+npm run dev
+```
+
+Aplikasi akan berjalan dan dapat diakses melalui peramban di alamat:
+```
+http://localhost:3000
+```
 
 ---
 
-## ☁️ Deployment ke Vercel
+## Pengujian dan Pemeriksaan Kode
 
-Proyek ini telah dikonfigurasi secara *native* untuk Vercel Serverless Architecture:
-1. Hubungkan repositori GitHub Anda ke **Vercel Dashboard**.
-2. Masukkan **Environment Variables** di Vercel:
+- **Pemeriksaan Tipe TypeScript:**
+  ```bash
+  npm run lint
+  ```
+
+- **Pembangunan Berkas Produksi (Production Build):**
+  ```bash
+  npm run build
+  ```
+
+- **Uji Keamanan dan Ketahanan Sistem (Chaos & Security Test):**
+  ```bash
+  npx tsx scripts/chaos-security-test.ts
+  ```
+
+---
+
+## Penerapan ke Vercel (Deployment)
+
+Proyek ini telah dikonfigurasi menggunakan berkas `vercel.json` untuk mendukung penerapan langsung di Vercel:
+
+1. Buat proyek baru di [Vercel Dashboard](https://vercel.com/) dan tautkan dengan repositori GitHub proyek ini.
+2. Tambahkan variabel lingkungan pada pengaturan proyek Vercel (*Project Settings > Environment Variables*):
    - `GEMINI_API_KEY`: Kunci API Google AI Studio Anda.
-3. Klik **Deploy**. Vercel akan otomatis membangun frontend ke `dist/` dan mengeksekusi `api/analyze.ts` sebagai serverless edge endpoint.
+3. Jalankan proses deployment. Vercel akan secara otomatis membangun antarmuka statis ke direktori `dist/` dan mengonversi berkas `api/analyze.ts` menjadi fungsi serverless.
 
 ---
 
-## 📄 Lisensi
-Apache-2.0 License. Dibuat dengan cinta untuk literatur dan keheningan berpikir.
+## Lisensi
+
+Proyek ini didistribusikan di bawah lisensi Apache-2.0.
