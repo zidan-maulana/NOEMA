@@ -1,8 +1,9 @@
-import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   User
 } from "firebase/auth";
@@ -28,12 +29,18 @@ googleProvider.setCustomParameters({
   prompt: "select_account"
 });
 
-// Sign-in and Sign-out functions
-export async function loginWithGoogle(): Promise<User> {
+// Sign-in and Sign-out functions with seamless Redirect fallback
+export async function loginWithGoogle(): Promise<User | null> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
+    // Jika popup diblokir oleh browser, alihkan otomatis ke mode redirect
+    if (error?.code === "auth/popup-blocked") {
+      console.warn("[Noema Auth]: Popup diblokir browser, mengalihkan ke signInWithRedirect...");
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
     console.error("Gagal melakukan autentikasi Google:", error);
     throw error;
   }
