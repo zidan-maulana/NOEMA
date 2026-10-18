@@ -1,6 +1,9 @@
-# Noema
-
-Aplikasi pendamping membaca berbasis kecerdasan buatan yang dirancang untuk menguraikan struktur gagasan dan menyajikan pemahaman bertingkat dari literatur konseptual yang padat.
+<div align="center">
+  <img src="src/assets/noema-logo.png" alt="Noema" width="220" />
+  <br />
+  <br />
+  <p>Aplikasi pendamping membaca berbasis kecerdasan buatan yang dirancang untuk menguraikan struktur gagasan dan menyajikan pemahaman bertingkat dari literatur konseptual yang padat.</p>
+</div>
 
 ---
 
