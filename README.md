@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="src/assets/noema-logo.png" alt="Noema" width="220" />
+  <img src="src/assets/noema-logo.png" alt="Noema" width="100%" />
   <br />
   <br />
   <p>Aplikasi pendamping membaca berbasis kecerdasan buatan yang dirancang untuk menguraikan struktur gagasan dan menyajikan pemahaman bertingkat dari literatur konseptual yang padat.</p>
