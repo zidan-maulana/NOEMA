@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Journal": {
+      "title": "Journal",
+      "description": "User reading history entry for Noema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier"
+        },
+        "originalText": {
+          "type": "string",
+          "description": "Original text segment analyzed"
+        },
+        "result": {
+          "type": "object",
+          "description": "The result of the analysis"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp of the reading"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether the item is pinned in the UI"
+        },
+        "customTitle": {
+          "type": "string",
+          "description": "User customized title for the entry"
+        }
+      },
+      "required": ["id", "originalText", "result", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/journal/{journalId}": {
+      "schema": "Journal",
+      "description": "User journal or reading history items list"
+    }
+  }
+}

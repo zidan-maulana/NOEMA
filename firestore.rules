@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default-deny catch-all safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidJournal(data) {
+      return data.id is string
+        && data.id.size() <= 128
+        && data.originalText is string
+        && data.originalText.size() <= 10000
+        && data.result is map
+        && data.timestamp is string
+        && data.timestamp.size() <= 64
+        && (!data.keys().hasAny(['isPinned']) || data.isPinned is bool)
+        && (!data.keys().hasAny(['customTitle']) || (data.customTitle is string && data.customTitle.size() <= 256));
+    }
+
+    // User's journal path
+    match /users/{userId}/journal/{journalId} {
+      allow create: if isSignedIn() && isOwner(userId) && isValidId(journalId) 
+        && isValidJournal(request.resource.data);
+
+      allow update: if isSignedIn() && isOwner(userId) && isValidId(journalId)
+        && isValidJournal(request.resource.data)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.originalText == resource.data.originalText
+        && request.resource.data.timestamp == resource.data.timestamp;
+
+      allow delete, get: if isSignedIn() && isOwner(userId) && isValidId(journalId);
+      
+      allow list: if isSignedIn() && isOwner(userId);
+    }
+  }
+}

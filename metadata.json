@@ -1,0 +1,6 @@
+{
+  "name": "Noema",
+  "description": "A guided deep reading experience that helps readers understand difficult paragraphs from philosophy, theory, and other complex books layer by layer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
