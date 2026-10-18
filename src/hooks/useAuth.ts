@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth, loginWithGoogle, logoutUser } from "../firebase";
+import { auth, loginWithGoogle, logoutUser, getRedirectResult } from "../firebase";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -8,8 +8,18 @@ export function useAuth() {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  // Monitor auth state changes
+  // Monitor auth state changes & handle redirects
   useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          setUser(result.user);
+        }
+      })
+      .catch((error) => {
+        console.warn("[Noema Auth]: Redirect result error:", error);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
@@ -25,6 +35,10 @@ export function useAuth() {
       if (loggedUser) {
         setUser(loggedUser);
         setSyncMessage(null);
+        setIsSyncing(false);
+      } else {
+        // Mode redirect fallback sedang dialihkan ke Google
+        setSyncMessage("Mengalihkan...");
       }
       return loggedUser;
     } catch (err: any) {

@@ -1,3 +1,4 @@
+import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
@@ -22,6 +23,7 @@ import firebaseConfig from "../firebase-applet-config.json";
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
 export const auth = getAuth(app);
+export { getRedirectResult };
 
 // Authentication Provider
 export const googleProvider = new GoogleAuthProvider();
