@@ -17,7 +17,16 @@ import {
   collection, 
   writeBatch
 } from "firebase/firestore";
-import firebaseConfig from "../firebase-applet-config.json";
+// Konfigurasi Firebase dari Environment Variables (12-Factor App Best Practice)
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "gen-lang-client-0217748195.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "gen-lang-client-0217748195",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "gen-lang-client-0217748195.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "531201920126",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:531201920126:web:f1e72cd13f79653fd0dc2f",
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || "ai-studio-66f09f12-34a4-4ad9-816d-538bdfbc3dc0",
+};
 
 // Tentukan authDomain: gunakan domain web saat di production (Vercel) dan fallback firebaseapp di localhost
 const isLocalhost = typeof window !== "undefined" && (
