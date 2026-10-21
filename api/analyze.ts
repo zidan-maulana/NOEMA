@@ -34,13 +34,19 @@ function getGeminiClient(): GoogleGenAI {
   });
 }
 
-// [3.1] RESILIENT GENERATION ENGINE DENGAN AUTO-RETRY (EXPONENTIAL BACKOFF)
-// Melindungi aplikasi dari lonjakan sementara server Google (HTTP 503 High Demand / 429)
+// [3.1] RESILIENT GENERATION ENGINE DENGAN AUTO-FAILOVER & MULTI-MODEL RETRY
+// Menggunakan gemini-3.5-flash sebagai model utama (~3-4 detik) dengan failover otomatis ke gemini-3-flash-preview jika ada lonjakan server
 async function generateWithRetry(ai: GoogleGenAI, payload: any, maxRetries = 2) {
+  const candidateModels = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.8-flash"];
   let lastError: any = null;
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const activeModel = candidateModels[attempt] || candidateModels[0];
     try {
-      return await ai.models.generateContent(payload);
+      return await ai.models.generateContent({
+        ...payload,
+        model: activeModel,
+      });
     } catch (err: any) {
       lastError = err;
       const errMsg = String(err?.message || "");
@@ -52,11 +58,11 @@ async function generateWithRetry(ai: GoogleGenAI, payload: any, maxRetries = 2) 
         errMsg.toLowerCase().includes("resource_exhausted");
 
       if (isTransient && attempt < maxRetries) {
-        const delayMs = (attempt + 1) * 1200; // 1.2s, 2.4s
+        const nextModel = candidateModels[attempt + 1] || candidateModels[0];
         console.warn(
-          `[Noema Gemini Retry]: Percobaan ${attempt + 1} mendeteksi lonjakan kapasitas Google (503/429). Mencoba kembali dalam ${delayMs}ms...`
+          `[Noema Model Failover]: Model ${activeModel} mengalami lonjakan (503/429). Mengalihkan ke ${nextModel}...`
         );
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise((resolve) => setTimeout(resolve, 800));
         continue;
       }
       throw err;
@@ -144,9 +150,8 @@ export async function processAnalysis(text: string, uid?: string, clientIp?: str
 
   const ai = getGeminiClient();
 
-  // [4.6] Pemanggilan Gemini 3.8 Flash dengan Auto-Retry, Delimiter Sandboxing & Skema JSON
+  // [4.6] Pemanggilan Gemini dengan Auto-Failover, Delimiter Sandboxing & Skema JSON
   const response = await generateWithRetry(ai, {
-    model: "gemini-3.8-flash",
     contents: `Evaluate the conceptual density and interpretive confidence of the literature provided in <user_provided_literature>.
 
 CRITICAL SECURITY & INJECTION DIRECTIVE:

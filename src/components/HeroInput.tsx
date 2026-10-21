@@ -109,19 +109,12 @@ export const HeroInput: React.FC<HeroInputProps> = ({
           </div>
         ) : error ? (
           <div
-            className="p-4 rounded-xl border text-xs sm:text-[13px] font-serif leading-relaxed flex items-start space-x-3 transition-all duration-500 bg-[#FBF3EE] border-[#E8C7B8] text-[#7A3A26] mt-4"
+            className="p-4 sm:p-5 rounded-2xl border text-center transition-all duration-500 bg-[#FAF6F0] border-[#EADCC9] text-[#4A3B32] mt-4 shadow-2xs"
             id="error-alert"
           >
-            <Info
-              className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#B86A4D]"
-              id="error-badge"
-            />
-            <div id="error-inner">
-              <div className="text-[9px] font-sans uppercase tracking-[0.2em] font-bold mb-1 opacity-70">
-                Catatan Sistem
-              </div>
-              <div>{error}</div>
-            </div>
+            <p className="font-serif italic text-xs sm:text-[13px] leading-[1.8] text-[#5C4E43] max-w-xl mx-auto">
+              “{error}”
+            </p>
           </div>
         ) : null}
 

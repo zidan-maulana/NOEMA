@@ -196,7 +196,7 @@ export function useGeminiAnalysis() {
 
         if (err.name === "AbortError") {
           setErrorType("server");
-          setError("Waktu pembacaan terlampaui. Noema membutuhkan waktu lebih cepat untuk merespon, silakan coba beberapa saat lagi.");
+          setError("Pembacaan membutuhkan waktu sedikit lebih lama karena kepadatan server. Silakan coba kembali sesaat lagi.");
         } else if (typeof navigator !== "undefined" && !navigator.onLine) {
           setErrorType("server");
           setError("Koneksi internet terputus saat Noema menelusuri gagasan. Periksa kembali sambungan internetmu.");
