@@ -2,7 +2,21 @@ import React from "react";
 import { Check, X, Edit3, Copy, ChevronDown } from "lucide-react";
 import { AnalysisResult, ReadingHistoryItem } from "../types";
 import { TONE_CONFIGS, ToneKey } from "../utils/toneConfigs";
-import { getDomainLabel } from "../utils/thoughtTracesFallback";
+
+function cleanContextTag(str?: string, maxWords = 3): string {
+  if (!str) return "";
+  let cleaned = str.replace(/\([^)]*\)/g, "");
+  if (cleaned.toLowerCase().includes(" atau ")) {
+    cleaned = cleaned.split(/ atau /i)[0];
+  }
+  cleaned = cleaned.split(/[,;]/)[0];
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  const words = cleaned.split(" ");
+  if (words.length > maxWords) {
+    cleaned = words.slice(0, maxWords).join(" ");
+  }
+  return cleaned;
+}
 
 interface AnalysisCardsProps {
   result: AnalysisResult;
@@ -33,6 +47,8 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
 }) => {
   const activeTone = (result.inferredTone || "default") as ToneKey;
   const toneConfig = TONE_CONFIGS[activeTone] || TONE_CONFIGS.default;
+  const displayStyle = cleanContextTag(result.context?.styleOrAuthor, 3) || "Reflektif";
+  const displayEra = cleanContextTag(result.context?.movementOrEra, 4) || "Kontemporer";
 
   return (
     <div className="max-w-2xl mx-auto mt-8 space-y-6" id="analytical-result-view">
@@ -44,14 +60,14 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
         <span className="h-[1px] bg-[#EADCC9]/45 flex-1"></span>
       </div>
 
-      {/* Flat text-only intellectual alignment line */}
+      {/* Flat text-only intellectual alignment line (Guaranteed 1 Single Line) */}
       <div className="text-[11px] sm:text-[11.5px] font-serif text-[#8A7968] py-1.5 border-b border-[#EADCC9]/35 pb-2 mb-1 layer-reveal delay-200" id="context-banner">
         <div 
-          className="italic leading-relaxed line-clamp-2" 
+          className="italic leading-relaxed truncate" 
           id="style-labels"
-          title={`Gaya tulisan: ${getDomainLabel(result)} | ${result.context?.styleOrAuthor || "Reflektif"} • ${result.context?.movementOrEra || "Kontemporer"}`}
+          title={`Gaya tulisan: ${displayStyle} • ${displayEra}`}
         >
-          Gaya tulisan: <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#B98B68]/8 text-[#5E5145] text-[8.5px] font-sans uppercase tracking-[0.12em] not-italic font-bold mx-1.5 align-middle select-none">{getDomainLabel(result)}</span> <span className="font-semibold text-[#2E251E] not-italic">{result.context?.styleOrAuthor || "Reflektif"}</span> &bull; <span className="text-[#8C7D70] not-italic text-[9px] font-sans tracking-[0.16em] uppercase ml-1.5 font-semibold">{result.context?.movementOrEra || "Kontemporer"}</span>
+          Gaya tulisan: <span className="font-semibold text-[#2E251E] not-italic ml-1">{displayStyle}</span> &bull; <span className="text-[#8C7D70] not-italic text-[9.5px] font-sans tracking-[0.14em] uppercase ml-1 font-semibold">{displayEra}</span>
         </div>
       </div>
 
