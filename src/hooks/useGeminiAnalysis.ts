@@ -12,6 +12,31 @@ export const LOADING_PHRASES = [
   "Menyiapkan satu pertanyaan yang layak direnungkan...",
 ];
 
+// [1.1] SANITIZER PESAN KESALAHAN (Mencegah Raw JSON vendor lolos ke tampilan pengguna)
+function sanitizeErrorMessage(rawMsg: any): string {
+  if (!rawMsg) return "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan.";
+  const str = String(rawMsg).trim();
+
+  if (str.startsWith("{") && str.includes('"error"')) {
+    try {
+      const parsed = JSON.parse(str);
+      const code = parsed?.error?.code;
+      const status = parsed?.error?.status;
+      const msg = String(parsed?.error?.message || "");
+
+      if (code === 503 || status === "UNAVAILABLE" || msg.toLowerCase().includes("high demand")) {
+        return "Layanan penelusuran makna sedang mengalami lonjakan pengunjung yang tinggi. Silakan tekan 'Bantu Memahami' sekali lagi dalam beberapa detik.";
+      }
+      if (code === 429 || msg.includes("RESOURCE_EXHAUSTED") || msg.toLowerCase().includes("quota")) {
+        return "Noema sedang mencapai batas pembacaan saat ini. Biarkan ia beristirahat sejenak sebelum kembali menelusuri makna.";
+      }
+      return "Terjadi kendala saat membaca teks. Silakan coba kembali sesaat lagi.";
+    } catch (_) {}
+  }
+
+  return str;
+}
+
 export function useGeminiAnalysis() {
   const [text, setText] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -143,6 +168,11 @@ export function useGeminiAnalysis() {
           } else if (response.status === 429) {
             setErrorType("quota");
             message = errorData.error || "Tunggu sebentar sebelum memulai pembacaan berikutnya.";
+          } else if (response.status === 503) {
+            setErrorType("server");
+            message =
+              errorData.error ||
+              "Layanan penelusuran makna sedang mengalami lonjakan pengunjung. Silakan coba sesaat lagi.";
           } else {
             setErrorType("server");
             message =
@@ -150,7 +180,7 @@ export function useGeminiAnalysis() {
               "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan.";
           }
 
-          throw new Error(message);
+          throw new Error(sanitizeErrorMessage(message));
         }
 
         const data: AnalysisResult = await response.json();
@@ -172,8 +202,10 @@ export function useGeminiAnalysis() {
           setError("Koneksi internet terputus saat Noema menelusuri gagasan. Periksa kembali sambungan internetmu.");
         } else {
           setError(
-            err?.message ||
-              "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan."
+            sanitizeErrorMessage(
+              err?.message ||
+                "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan."
+            )
           );
         }
       } finally {

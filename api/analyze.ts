@@ -34,6 +34,37 @@ function getGeminiClient(): GoogleGenAI {
   });
 }
 
+// [3.1] RESILIENT GENERATION ENGINE DENGAN AUTO-RETRY (EXPONENTIAL BACKOFF)
+// Melindungi aplikasi dari lonjakan sementara server Google (HTTP 503 High Demand / 429)
+async function generateWithRetry(ai: GoogleGenAI, payload: any, maxRetries = 2) {
+  let lastError: any = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await ai.models.generateContent(payload);
+    } catch (err: any) {
+      lastError = err;
+      const errMsg = String(err?.message || "");
+      const isTransient =
+        errMsg.includes("503") ||
+        errMsg.includes("UNAVAILABLE") ||
+        errMsg.toLowerCase().includes("high demand") ||
+        errMsg.includes("429") ||
+        errMsg.toLowerCase().includes("resource_exhausted");
+
+      if (isTransient && attempt < maxRetries) {
+        const delayMs = (attempt + 1) * 1200; // 1.2s, 2.4s
+        console.warn(
+          `[Noema Gemini Retry]: Percobaan ${attempt + 1} mendeteksi lonjakan kapasitas Google (503/429). Mencoba kembali dalam ${delayMs}ms...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
 // [4] CORE ANALYSIS ENGINE
 export async function processAnalysis(text: string, uid?: string, clientIp?: string) {
   // [4.1] Validasi tipe data awal
@@ -113,8 +144,8 @@ export async function processAnalysis(text: string, uid?: string, clientIp?: str
 
   const ai = getGeminiClient();
 
-  // [4.6] Pemanggilan Gemini 3.8 Flash dengan Delimiter Sandboxing & Skema JSON
-  const response = await ai.models.generateContent({
+  // [4.6] Pemanggilan Gemini 3.8 Flash dengan Auto-Retry, Delimiter Sandboxing & Skema JSON
+  const response = await generateWithRetry(ai, {
     model: "gemini-3.8-flash",
     contents: `Evaluate the conceptual density and interpretive confidence of the literature provided in <user_provided_literature>.
 
@@ -341,11 +372,38 @@ export default async function handler(req: any, res: any) {
 
     const rawMessage = String(e?.message || e || "");
 
+    // Cek apakah rawMessage merupakan string JSON dari Google API
+    let parsedGoogleMessage = "";
+    try {
+      if (rawMessage.trim().startsWith("{") && rawMessage.includes('"error"')) {
+        const parsed = JSON.parse(rawMessage);
+        parsedGoogleMessage = String(parsed?.error?.message || "");
+      }
+    } catch (_) {}
+
+    // 1. Deteksi Lonjakan Kapasitas / Model High Demand (HTTP 503 / UNAVAILABLE)
+    const isHighDemand =
+      rawMessage.includes("503") ||
+      rawMessage.includes("UNAVAILABLE") ||
+      rawMessage.toLowerCase().includes("high demand") ||
+      parsedGoogleMessage.toLowerCase().includes("high demand");
+
+    if (isHighDemand) {
+      res.status(503).json({
+        errorType: "server",
+        error:
+          "Layanan penelusuran makna sedang mengalami lonjakan pengunjung yang tinggi. Silakan tekan 'Bantu Memahami' sekali lagi dalam beberapa detik.",
+      });
+      return;
+    }
+
+    // 2. Deteksi Batas Kuota / Rate Limit (HTTP 429)
     const isQuotaError =
       rawMessage.includes("RESOURCE_EXHAUSTED") ||
       rawMessage.toLowerCase().includes("quota") ||
       rawMessage.toLowerCase().includes("rate limit") ||
-      rawMessage.includes("429");
+      rawMessage.includes("429") ||
+      parsedGoogleMessage.toLowerCase().includes("quota");
 
     if (isQuotaError || e?.errorType === "rate-limit") {
       res.status(429).json({
@@ -353,15 +411,26 @@ export default async function handler(req: any, res: any) {
         error:
           e?.errorType === "rate-limit"
             ? e.message
-            : "Noema sedang mencapai batas pembacaan hari ini. Biarkan ia beristirahat sejenak sebelum kembali menelusuri makna.",
+            : "Noema sedang mencapai batas pembacaan saat ini. Biarkan ia beristirahat sejenak sebelum kembali menelusuri makna.",
       });
       return;
     }
 
+    // 3. Kesalahan Input (HTTP 400) vs Kesalahan Internal Server (HTTP 500)
     const statusCode = e?.statusCode || 500;
+    const isInputError = statusCode === 400 || e?.errorType === "input";
+
+    let cleanUserMessage = "Terjadi kendala saat membaca paragraf. Silakan coba kembali sesaat lagi.";
+    if (isInputError) {
+      cleanUserMessage =
+        e?.message && !e.message.trim().startsWith("{")
+          ? e.message
+          : "Struktur teks belum dapat diuraikan secara utuh. Periksa kembali paragraf yang kamu masukkan.";
+    }
+
     res.status(statusCode).json({
-      errorType: statusCode === 400 ? "input" : "server",
-      error: rawMessage || "Terjadi kendala saat membaca paragraf. Silakan coba kembali sesaat lagi.",
+      errorType: isInputError ? "input" : "server",
+      error: cleanUserMessage,
     });
   }
 }
