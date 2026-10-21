@@ -10,6 +10,11 @@ export function useAuth() {
 
   // Monitor auth state changes & handle redirects
   useEffect(() => {
+    if (!auth) {
+      setAuthLoading(false);
+      return;
+    }
+
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
@@ -28,6 +33,10 @@ export function useAuth() {
   }, []);
 
   const login = async () => {
+    if (!auth) {
+      alert("Layanan akun sedang dipersiapkan. Anda tetap dapat membaca dan meneliti teks secara penuh dalam mode tamu.");
+      return;
+    }
     setIsSyncing(true);
     setSyncMessage("Menghubungkan...");
     try {
