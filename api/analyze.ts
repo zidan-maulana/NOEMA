@@ -201,6 +201,10 @@ Based on the classified 'inferredTone', Noema MUST adapt its Indonesian sentence
 
 Provide up to 2 resonant world thinkers or philosophical resonances in 'thoughtTraces' (e.g. thinker name and a single grounded Indonesian sentence summarizing how this thought echoes their philosophy).
 
+CRITICAL CONTEXT TAG REQUIREMENTS ('context'):
+- 'styleOrAuthor': Concise author name or literary style label (strictly 1 to 3 words, e.g. "Friedrich Nietzsche", "Refleksi Personal", "Esai Filsafat"). NEVER write full sentences.
+- 'movementOrEra': Concise intellectual movement or era tag (strictly 1 to 4 words, e.g. "Eksistensialisme Abad ke-19", "Romantisisme", "Fenomenologi", "Kontemporer"). DILARANG KERAS menyertakan penjelasan dalam kurung seperti "(dalam konteks...)" atau frasa majemuk seperti "atau refleksi...". Cukup sebutkan nama aliran/era utamanya saja.
+
 CRITICAL LANGUAGE REQUIREMENT (WAJIB PENUH DALAM BAHASA INDONESIA):
 - ALL generated elements in the returned JSON (coreMeaning, inHumanLanguage, whyThisMatters, thinkDeeper, domainLabel, styleOrAuthor, movementOrEra, restrainedMessage, vocabList, thoughtTraces) MUST be written FULLY, PURELY, and ELEGANTLY in natural Indonesian (Bahasa Indonesia), even if the input text/paragraph is in English.
 - Always set "language" value to "id".
@@ -268,11 +272,11 @@ ${sanitizedText}
             properties: {
               styleOrAuthor: {
                 type: Type.STRING,
-                description: "Likely author or style alignment, written in Indonesian.",
+                description: "Concise author or style label, strictly 1 to 3 words (e.g. 'Friedrich Nietzsche' or 'Refleksi Personal'). No full sentences.",
               },
               movementOrEra: {
                 type: Type.STRING,
-                description: "Likely era or movement, written in Indonesian.",
+                description: "Concise movement or era label, strictly 1 to 4 words (e.g. 'Eksistensialisme Abad ke-19'). NEVER include parentheses or explanatory clauses.",
               },
             },
             required: ["styleOrAuthor", "movementOrEra"],
@@ -323,8 +327,37 @@ ${sanitizedText}
     throw new Error("No response received from Gemini.");
   }
 
+function sanitizeContextTag(str: string, maxWords = 4): string {
+  if (!str || typeof str !== "string") return "";
+  // Strip parentheses and anything inside them
+  let cleaned = str.replace(/\([^)]*\)/g, "");
+  // Take first clause if separated by 'atau'
+  if (cleaned.toLowerCase().includes(" atau ")) {
+    cleaned = cleaned.split(/ atau /i)[0];
+  }
+  // Strip after comma or semicolon if overly long
+  cleaned = cleaned.replace(/[,;].*$/, "");
+  // Normalize whitespace
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  // Limit to maxWords
+  const words = cleaned.split(" ");
+  if (words.length > maxWords) {
+    cleaned = words.slice(0, maxWords).join(" ");
+  }
+  return cleaned;
+}
+
   try {
-    return JSON.parse(outputText);
+    const parsed = JSON.parse(outputText);
+    if (parsed && parsed.context) {
+      if (parsed.context.styleOrAuthor) {
+        parsed.context.styleOrAuthor = sanitizeContextTag(parsed.context.styleOrAuthor, 3);
+      }
+      if (parsed.context.movementOrEra) {
+        parsed.context.movementOrEra = sanitizeContextTag(parsed.context.movementOrEra, 4);
+      }
+    }
+    return parsed;
   } catch (parseError) {
     console.error("[Noema JSON Parse Error]: Raw text:", outputText);
     const error: any = new Error("Noema mengalami sedikit kendala dalam merapikan intisari pemikiran. Silakan coba sekali lagi.");

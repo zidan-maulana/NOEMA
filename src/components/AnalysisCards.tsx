@@ -45,8 +45,12 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
       </div>
 
       {/* Flat text-only intellectual alignment line */}
-      <div className="text-[11.5px] font-serif text-[#8A7968] py-1.5 border-b border-[#EADCC9]/35 pb-2.5 mb-1 layer-reveal delay-200" id="context-banner">
-        <div className="italic leading-relaxed" id="style-labels">
+      <div className="text-[11px] sm:text-[11.5px] font-serif text-[#8A7968] py-1.5 border-b border-[#EADCC9]/35 pb-2 mb-1 layer-reveal delay-200" id="context-banner">
+        <div 
+          className="italic leading-relaxed line-clamp-2" 
+          id="style-labels"
+          title={`Gaya tulisan: ${getDomainLabel(result)} | ${result.context?.styleOrAuthor || "Reflektif"} • ${result.context?.movementOrEra || "Kontemporer"}`}
+        >
           Gaya tulisan: <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#B98B68]/8 text-[#5E5145] text-[8.5px] font-sans uppercase tracking-[0.12em] not-italic font-bold mx-1.5 align-middle select-none">{getDomainLabel(result)}</span> <span className="font-semibold text-[#2E251E] not-italic">{result.context?.styleOrAuthor || "Reflektif"}</span> &bull; <span className="text-[#8C7D70] not-italic text-[9px] font-sans tracking-[0.16em] uppercase ml-1.5 font-semibold">{result.context?.movementOrEra || "Kontemporer"}</span>
         </div>
       </div>
