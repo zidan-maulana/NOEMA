@@ -4,7 +4,7 @@ import logo from "../assets/noema-logo.png";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-transparent pb-8 sm:pb-12 mt-6 sm:mt-10 select-none" id="app-footer">
+    <footer className="bg-transparent pb-8 sm:pb-12 mt-10 sm:mt-16 select-none" id="app-footer">
       <div className="max-w-3xl mx-auto px-6 sm:px-8 flex flex-col items-center justify-center text-center space-y-4 sm:space-y-6" id="footer-container">
         
         {/* SECTION A — GIANT LOGO PRESENCE (Centered, fully visible and uncropped) */}
