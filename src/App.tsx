@@ -174,7 +174,6 @@ export default function App() {
             setEditedTitleVal={setEditedTitleVal}
             onUpdateTitle={(id, val) => updateTitle(id, val)}
             onCopyAnalysis={copyAnalysis}
-            onExportActive={(item) => exportEntry(item)}
             onRevealNext={revealNextLayer}
           />
         )}

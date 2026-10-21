@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, X, Edit3, Download, ChevronDown } from "lucide-react";
+import { Check, X, Edit3, Copy, ChevronDown } from "lucide-react";
 import { AnalysisResult, ReadingHistoryItem } from "../types";
 import { TONE_CONFIGS, ToneKey } from "../utils/toneConfigs";
 import { getDomainLabel } from "../utils/thoughtTracesFallback";
@@ -15,7 +15,6 @@ interface AnalysisCardsProps {
   setEditedTitleVal: (val: string) => void;
   onUpdateTitle: (id: string, val: string) => void;
   onCopyAnalysis: () => void;
-  onExportActive: (item: ReadingHistoryItem) => void;
   onRevealNext: () => void;
 }
 
@@ -30,7 +29,6 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
   setEditedTitleVal,
   onUpdateTitle,
   onCopyAnalysis,
-  onExportActive,
   onRevealNext,
 }) => {
   const activeTone = (result.inferredTone || "default") as ToneKey;
@@ -47,24 +45,17 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
       </div>
 
       {/* Flat text-only intellectual alignment line */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 text-[11.5px] font-serif text-[#8A7968] py-1.5 border-b border-[#EADCC9]/35 pb-2.5 mb-1 layer-reveal delay-200" id="context-banner">
-        <div className="italic leading-relaxed flex-1 min-w-0" id="style-labels">
+      <div className="text-[11.5px] font-serif text-[#8A7968] py-1.5 border-b border-[#EADCC9]/35 pb-2.5 mb-1 layer-reveal delay-200" id="context-banner">
+        <div className="italic leading-relaxed" id="style-labels">
           Gaya tulisan: <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#B98B68]/8 text-[#5E5145] text-[8.5px] font-sans uppercase tracking-[0.12em] not-italic font-bold mx-1.5 align-middle select-none">{getDomainLabel(result)}</span> <span className="font-semibold text-[#2E251E] not-italic">{result.context?.styleOrAuthor || "Reflektif"}</span> &bull; <span className="text-[#8C7D70] not-italic text-[9px] font-sans tracking-[0.16em] uppercase ml-1.5 font-semibold">{result.context?.movementOrEra || "Kontemporer"}</span>
         </div>
-        <button
-          type="button"
-          onClick={onCopyAnalysis}
-          className="text-[#C27E5A] hover:text-[#B98B68] transition-all duration-500 ease-out cursor-pointer text-[8px] font-sans uppercase tracking-[0.16em] font-bold whitespace-nowrap shrink-0 relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-[#B98B68] after:transition-transform after:duration-500 after:ease-out hover:after:origin-bottom-left hover:after:scale-x-100 pb-0.5 self-start sm:self-center"
-        >
-          {copied ? "Tersalin." : "Salin Pembacaan"}
-        </button>
       </div>
 
-      {/* Inline renaming and exporting panel for active journal entry */}
-      {selectedHistoryItem && (
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-serif bg-[#FCFAF7]/80 border border-[#EADCC9]/50 rounded-xl px-4 py-3 layer-reveal delay-250 mt-4" id="active-item-controls">
-          <div className="flex-1 min-w-0 xs:min-w-[240px] w-full">
-            {editingTitleId === selectedHistoryItem.id ? (
+      {/* Inline renaming and copy action panel for active reading */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-serif bg-[#FCFAF7]/80 border border-[#EADCC9]/50 rounded-xl px-4 py-3 layer-reveal delay-250 mt-4" id="active-item-controls">
+        <div className="flex-1 min-w-0 xs:min-w-[240px] w-full">
+          {selectedHistoryItem ? (
+            editingTitleId === selectedHistoryItem.id ? (
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -109,23 +100,36 @@ export const AnalysisCards: React.FC<AnalysisCardsProps> = ({
                   <Edit3 className="w-3 h-3" />
                 </button>
               </div>
-            )}
-          </div>
-          
-          <div className="flex items-center space-x-2.5 shrink-0" id="active-card-actions">
-            <button
-              type="button"
-              onClick={() => onExportActive(selectedHistoryItem)}
-              className="py-1 px-2.5 text-[#C27E5A] hover:text-[#B98B68] text-[9.5px] font-sans uppercase tracking-[0.14em] font-bold flex items-center space-x-1.5 hover:bg-[#FAF6F0] rounded-md transition-all border border-transparent hover:border-[#EADCC9]/50 cursor-pointer"
-              title="Ekspor sebagai Markdown (.md)"
-              id="active-export-btn"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C27E5A]" />
-              <span>Ekspor Catatan</span>
-            </button>
-          </div>
+            )
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span className="text-[#8C7D70] font-sans text-[8px] uppercase tracking-[0.16em] font-bold shrink-0">Arsip Pembacaan</span>
+            </div>
+          )}
         </div>
-      )}
+        
+        <div className="flex items-center space-x-2.5 shrink-0" id="active-card-actions">
+          <button
+            type="button"
+            onClick={onCopyAnalysis}
+            className="py-1 px-2.5 text-[#C27E5A] hover:text-[#B98B68] text-[9.5px] font-sans uppercase tracking-[0.14em] font-bold flex items-center space-x-1.5 hover:bg-[#FAF6F0] rounded-md transition-all border border-transparent hover:border-[#EADCC9]/50 cursor-pointer"
+            title="Salin seluruh pembacaan ke papan klip"
+            id="active-copy-btn"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-[#B98B68]" />
+                <span>Tersalin</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-[#C27E5A]" />
+                <span>Salin Pembacaan</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* 4 Cards (Strictly Structured Flow with Tone Styling) */}
       <div className={`${toneConfig.containerSpacing} !mt-4`} id="layered-cards-container">
