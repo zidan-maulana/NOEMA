@@ -93,28 +93,19 @@ export const HeroInput: React.FC<HeroInputProps> = ({
           ))}
         </div>
 
-        {/* Error / Quota Notifications */}
-        {error && errorType === "quota" ? (
-          <div className="max-w-2xl mx-auto mt-6 text-center space-y-4 layer-reveal" id="quota-error-view">
-            <div className="px-6 sm:px-10 py-5 bg-[#FCFAF7] border border-[#EADCC9]/55 rounded-xl shadow-[0_1px_4px_rgba(46,37,30,0.02)] hover:shadow-[0_4px_14px_rgba(185,139,104,0.04)] hover:bg-[#FDFDFB] transition-all duration-500 ease-out text-center" id="quota-card">
-              <div className="text-[8.5px] font-sans uppercase tracking-[0.2em] text-[#867565] mb-4 font-bold pb-1.5 border-b border-[#EADCC9]/20 flex items-center justify-center space-x-1.5 opacity-80">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B98B68]/40"></span>
-                <span className="sans tracking-wider text-[8px]">JEDA PEMBACAAN</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B98B68]/40"></span>
+        {/* Error / Reading Note Notifications */}
+        {error ? (
+          <div className="max-w-xl mx-auto mt-6 text-center space-y-3 layer-reveal" id="reading-note-view">
+            <div className="px-6 sm:px-8 py-4.5 bg-[#FCFAF7] border border-[#EADCC9]/70 rounded-xl shadow-[0_1px_4px_rgba(46,37,30,0.02)] transition-all duration-300 text-center" id="reading-note-card">
+              <div className="text-[9px] font-sans uppercase tracking-[0.22em] text-[#8C7A6B] mb-2 font-medium flex items-center justify-center space-x-2">
+                <span className="w-1 h-1 rounded-full bg-[#B98B68]/50"></span>
+                <span>{errorType === "quota" ? "Jeda Pembacaan" : "Catatan Bacaan"}</span>
+                <span className="w-1 h-1 rounded-full bg-[#B98B68]/50"></span>
               </div>
-              <p className="font-serif italic text-sm sm:text-base text-[#5E5145] leading-[1.8] px-2" id="quota-error-text">
+              <p className="font-serif italic text-xs sm:text-[13px] text-[#5C4E43] leading-[1.8] px-2" id="reading-note-text">
                 “{error}”
               </p>
             </div>
-          </div>
-        ) : error ? (
-          <div
-            className="p-4 sm:p-5 rounded-2xl border text-center transition-all duration-500 bg-[#FAF6F0] border-[#EADCC9] text-[#4A3B32] mt-4 shadow-2xs"
-            id="error-alert"
-          >
-            <p className="font-serif italic text-xs sm:text-[13px] leading-[1.8] text-[#5C4E43] max-w-xl mx-auto">
-              “{error}”
-            </p>
           </div>
         ) : null}
 

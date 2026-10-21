@@ -35,9 +35,9 @@ function getGeminiClient(): GoogleGenAI {
 }
 
 // [3.1] RESILIENT GENERATION ENGINE DENGAN AUTO-FAILOVER & MULTI-MODEL RETRY
-// Menggunakan gemini-3.5-flash sebagai model utama (~3-4 detik) dengan failover otomatis ke gemini-3-flash-preview jika ada lonjakan server
+// Menggunakan gemini-3.5-flash-lite sebagai model utama (~1.5 detik) dengan failover ke gemini-3.1-flash-lite (~1.9 detik)
 async function generateWithRetry(ai: GoogleGenAI, payload: any, maxRetries = 2) {
-  const candidateModels = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.8-flash"];
+  const candidateModels = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"];
   let lastError: any = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -60,9 +60,9 @@ async function generateWithRetry(ai: GoogleGenAI, payload: any, maxRetries = 2) 
       if (isTransient && attempt < maxRetries) {
         const nextModel = candidateModels[attempt + 1] || candidateModels[0];
         console.warn(
-          `[Noema Model Failover]: Model ${activeModel} mengalami lonjakan (503/429). Mengalihkan ke ${nextModel}...`
+          `[Noema Model Failover]: Model ${activeModel} sedang ramai. Mengalihkan ke ${nextModel}...`
         );
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         continue;
       }
       throw err;
@@ -397,7 +397,7 @@ export default async function handler(req: any, res: any) {
       res.status(503).json({
         errorType: "server",
         error:
-          "Layanan penelusuran makna sedang mengalami lonjakan pengunjung yang tinggi. Silakan tekan 'Bantu Memahami' sekali lagi dalam beberapa detik.",
+          "Banyak pemikiran sedang diselisik bersamaan saat ini. Silakan sentuh 'Bantu Memahami' sekali lagi.",
       });
       return;
     }
@@ -425,12 +425,12 @@ export default async function handler(req: any, res: any) {
     const statusCode = e?.statusCode || 500;
     const isInputError = statusCode === 400 || e?.errorType === "input";
 
-    let cleanUserMessage = "Terjadi kendala saat membaca paragraf. Silakan coba kembali sesaat lagi.";
+    let cleanUserMessage = "Noema memerlukan waktu sejenak untuk menimbang kalimat ini. Silakan coba kembali sesaat lagi.";
     if (isInputError) {
       cleanUserMessage =
         e?.message && !e.message.trim().startsWith("{")
           ? e.message
-          : "Struktur teks belum dapat diuraikan secara utuh. Periksa kembali paragraf yang kamu masukkan.";
+          : "Paragraf belum dapat diuraikan secara utuh. Periksa kembali teks yang ingin kamu selisik.";
     }
 
     res.status(statusCode).json({

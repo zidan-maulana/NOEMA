@@ -25,12 +25,12 @@ function sanitizeErrorMessage(rawMsg: any): string {
       const msg = String(parsed?.error?.message || "");
 
       if (code === 503 || status === "UNAVAILABLE" || msg.toLowerCase().includes("high demand")) {
-        return "Layanan penelusuran makna sedang mengalami lonjakan pengunjung yang tinggi. Silakan tekan 'Bantu Memahami' sekali lagi dalam beberapa detik.";
+        return "Banyak pemikiran sedang diselisik bersamaan saat ini. Silakan sentuh 'Bantu Memahami' sekali lagi.";
       }
       if (code === 429 || msg.includes("RESOURCE_EXHAUSTED") || msg.toLowerCase().includes("quota")) {
         return "Noema sedang mencapai batas pembacaan saat ini. Biarkan ia beristirahat sejenak sebelum kembali menelusuri makna.";
       }
-      return "Terjadi kendala saat membaca teks. Silakan coba kembali sesaat lagi.";
+      return "Noema memerlukan waktu sejenak untuk menimbang kalimat ini. Silakan coba kembali sesaat lagi.";
     } catch (_) {}
   }
 
@@ -172,12 +172,12 @@ export function useGeminiAnalysis() {
             setErrorType("server");
             message =
               errorData.error ||
-              "Layanan penelusuran makna sedang mengalami lonjakan pengunjung. Silakan coba sesaat lagi.";
+              "Banyak pemikiran sedang diselisik bersamaan saat ini. Silakan sentuh 'Bantu Memahami' sekali lagi.";
           } else {
             setErrorType("server");
             message =
               errorData.error ||
-              "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan.";
+              "Noema memerlukan waktu sejenak untuk menimbang kalimat ini. Silakan coba kembali sesaat lagi.";
           }
 
           throw new Error(sanitizeErrorMessage(message));
@@ -196,15 +196,15 @@ export function useGeminiAnalysis() {
 
         if (err.name === "AbortError") {
           setErrorType("server");
-          setError("Pembacaan membutuhkan waktu sedikit lebih lama karena kepadatan server. Silakan coba kembali sesaat lagi.");
+          setError("Noema memerlukan waktu sejenak untuk menimbang kalimat ini. Silakan coba sentuh 'Bantu Memahami' sekali lagi.");
         } else if (typeof navigator !== "undefined" && !navigator.onLine) {
           setErrorType("server");
-          setError("Koneksi internet terputus saat Noema menelusuri gagasan. Periksa kembali sambungan internetmu.");
+          setError("Sambungan bacaan terputus. Pastikan perangkatmu terhubung kembali sebelum melanjutkan penelusuran.");
         } else {
           setError(
             sanitizeErrorMessage(
               err?.message ||
-                "Pembacaan belum dapat dilanjutkan. Noema perlu jeda sejenak sebelum melanjutkan."
+                "Noema memerlukan jeda sejenak sebelum melanjutkan pembacaan."
             )
           );
         }
